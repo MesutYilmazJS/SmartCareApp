@@ -1,0 +1,99 @@
+﻿@model PatientDetailsViewModel
+
+@{
+    ViewData["Title"] = Model.Patient.FullName;
+}
+
+<section class="detail-shell mt-4">
+    <div class="panel-heading">
+        <div class="d-flex align-items-center gap-3">
+            <span class="profile-square profile-square-md">
+                <img src="@Model.ProfileImageUrl" alt="@Model.Patient.FullName" />
+            </span>
+            <div>
+            <p class="panel-eyebrow">Hasta kartı</p>
+            <h2>@Model.Patient.FullName</h2>
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <risk-badge score="@Model.Assessment.RiskScore"></risk-badge>
+            <risk-badge score="@Model.Assessment.NoShowRiskScore" label="Katılım"></risk-badge>
+            <span class="care-status-chip @Model.Patient.CareStatus.ToCssClass()">@Model.Patient.CareStatus.ToDisplayText()</span>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div>
+            <div class="detail-highlights">
+                <article>
+                    <p class="panel-eyebrow">Profil</p>
+                    <strong>@Model.Patient.Age yaş</strong>
+                    <p>@Model.Patient.PrimarySymptom · @Model.Patient.NationalId</p>
+                </article>
+                <article>
+                    <p class="panel-eyebrow">Öncelik</p>
+                    <strong>@Model.Assessment.PriorityLabel</strong>
+                    <p>@Model.Patient.ChronicConditions</p>
+                </article>
+                <article>
+                    <p class="panel-eyebrow">Giriş</p>
+                    <strong>@Model.Patient.AccessCode</strong>
+                    <p>Son 30 günde @Model.Patient.PortalLoginCountLast30Days giriş</p>
+                </article>
+            </div>
+
+            <div class="timeline-shell mt-4">
+                <div class="panel-heading">
+                    <div>
+                        <p class="panel-eyebrow">Tıbbi geçmiş</p>
+                        <h2>Zaman akışı</h2>
+                    </div>
+                </div>
+                @await Component.InvokeAsync("MedicalTimeline", new { patientId = Model.Patient.Id })
+            </div>
+        </div>
+
+        <aside class="detail-aside">
+            <article>
+                <h3 class="detail-section-title">Öncelik nedenleri</h3>
+                <ul class="signal-list">
+                @foreach (var signal in Model.Assessment.Signals)
+                {
+                    <li>@signal</li>
+                }
+                </ul>
+            </article>
+
+            <article>
+                <h3 class="detail-section-title">Yaklaşan randevular</h3>
+                @if (Model.UpcomingAppointments.Count == 0)
+                {
+                    <p class="timeline-copy">Yaklaşan randevu bulunmuyor.</p>
+                }
+                else
+                {
+                    <div class="appointment-list">
+                    @foreach (var appointment in Model.UpcomingAppointments)
+                    {
+                        <article class="appointment-card">
+                            <div>
+                                <h3>@appointment.VisitType</h3>
+                                <p>@appointment.Doctor.FullName</p>
+                            </div>
+                            <div>
+                                <div class="appointment-time">@appointment.ScheduledAt.ToLocalTime().ToString("ddd, dd MMM HH:mm")</div>
+                                <span class="status-pill">@appointment.Status.ToDisplayText()</span>
+                            </div>
+                        </article>
+                    }
+                    </div>
+                }
+            </article>
+
+            <article>
+                <h3 class="detail-section-title">Hasta notu</h3>
+                <p class="timeline-copy">@Model.Patient.IntakeNotes</p>
+            </article>
+        </aside>
+    </div>
+</section>

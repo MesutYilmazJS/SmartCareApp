@@ -1,0 +1,175 @@
+@model DoctorPortalViewModel
+
+@{
+    ViewData["Title"] = "Doktor Paneli";
+}
+
+<section class="welcome-shell mt-4">
+    <div class="welcome-card">
+        <div class="welcome-profile">
+            <div class="profile-square profile-square-lg profile-upload-trigger" onclick="document.getElementById('doctorProfileImageInput').click()">
+                <img src="@Model.ProfileImageUrl" alt="@Model.Doctor.FullName" />
+                <div class="upload-overlay">
+                    <span>Değiştir</span>
+                </div>
+            </div>
+            <form id="doctorProfileImageForm" asp-controller="Profile" asp-action="UploadDoctorImage" method="post" enctype="multipart/form-data" style="display:none">
+                @Html.AntiForgeryToken()
+                <input type="file" id="doctorProfileImageInput" name="file" onchange="document.getElementById('doctorProfileImageForm').submit()" accept="image/*" />
+            </form>
+            <div>
+                <p class="panel-eyebrow">Hoş geldiniz</p>
+                <h1>@Model.Doctor.FullName</h1>
+                <p class="timeline-copy">@Model.Doctor.Specialty · Oda @Model.Doctor.RoomNumber</p>
+            </div>
+        </div>
+
+        <div class="welcome-metrics">
+            <article>
+                <span class="metric-label">Hasta</span>
+                <strong>@Model.Patients.Count</strong>
+            </article>
+            <article>
+                <span class="metric-label">Öncelikli</span>
+                <strong>@Model.Patients.Count(item => item.RiskScore >= 70)</strong>
+            </article>
+            <article>
+                <span class="metric-label">Takipte</span>
+                <strong>@Model.Patients.Count(item => item.CareStatus == PatientCareStatus.InTreatment)</strong>
+            </article>
+        </div>
+    </div>
+</section>
+
+@if (Model.UpcomingAppointments.Any(a => a.Status == AppointmentStatus.CancellationRequested))
+{
+    <section class="panel-card mt-4 border-warning">
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow text-warning">Aksiyon Bekleyen</p>
+                <h2>İptal Talepleri</h2>
+            </div>
+        </div>
+        <div class="appointment-list">
+            @foreach (var app in Model.UpcomingAppointments.Where(a => a.Status == AppointmentStatus.CancellationRequested))
+            {
+                <article class="appointment-card border-warning">
+                    <div>
+                        <h3>@app.Patient.FullName</h3>
+                        <p>@app.VisitType · @app.ScheduledAt.ToLocalTime().ToString("dd MMM HH:mm")</p>
+                        <p class="text-muted small">@app.Reason</p>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <form asp-action="ApproveCancellation" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="appointmentId" value="@app.Id" />
+                            <button type="submit" class="btn btn-sm btn-success">Onayla</button>
+                        </form>
+                        <form asp-action="RejectCancellation" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="appointmentId" value="@app.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Reddet</button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+    </section>
+}
+
+<section class="panel-card mt-4">
+    <div class="panel-heading">
+        <div>
+            <p class="panel-eyebrow">Hasta yönetimi</p>
+            <h2>Takip ettiğiniz hastalar</h2>
+        </div>
+        <a class="btn btn-primary" asp-controller="Patients" asp-action="Create">Hasta kaydı aç</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table queue-table align-middle">
+            <thead>
+                <tr>
+                    <th>Hasta</th>
+                    <th>Giriş</th>
+                    <th>Öncelik</th>
+                    <th>Durum</th>
+                    <th>Son hareket</th>
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var patient in Model.Patients)
+            {
+                <tr>
+                    <td>
+                        <div class="table-user">
+                            <span class="profile-square profile-square-sm profile-upload-trigger" onclick="document.getElementById('patientImg_@patient.Id').click()">
+                                <img src="@patient.ProfileImageUrl" alt="@patient.FullName" />
+                                <div class="upload-overlay">
+                                    <i class="bi bi-camera"></i>
+                                </div>
+                            </span>
+                            <form id="patientForm_@patient.Id" asp-controller="Profile" asp-action="UploadPatientImage" asp-route-id="@patient.Id" method="post" enctype="multipart/form-data" style="display:none">
+                                @Html.AntiForgeryToken()
+                                <input type="file" id="patientImg_@patient.Id" name="file" onchange="document.getElementById('patientForm_@patient.Id').submit()" accept="image/*" />
+                            </form>
+                            <div>
+                                <strong>@patient.FullName</strong>
+                                <div class="table-subtitle">@patient.Age yaş · @patient.PrimarySymptom</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div>@patient.AccessCode</div>
+                        <div class="table-subtitle">@patient.NationalId</div>
+                    </td>
+                    <td>
+                        <risk-badge score="@patient.RiskScore"></risk-badge>
+                        <div class="table-subtitle mt-1">Katılım @patient.NoShowRiskScore</div>
+                    </td>
+                    <td>
+                        <span class="care-status-chip @patient.CareStatus.ToCssClass()">@patient.CareStatus.ToDisplayText()</span>
+                    </td>
+                    <td>@patient.LastVisitText</td>
+                    <td class="table-actions-cell">
+                        <form asp-action="UpdatePatientStatus" method="post" class="status-actions">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="patientId" value="@patient.Id" />
+                            <button type="submit" name="status" value="@PatientCareStatus.UnderReview" class="btn btn-outline-secondary btn-sm">İncelemede</button>
+                            <button type="submit" name="status" value="@PatientCareStatus.InTreatment" class="btn btn-outline-secondary btn-sm">Tedavide</button>
+                            <button type="submit" name="status" value="@PatientCareStatus.Stable" class="btn btn-outline-secondary btn-sm">Stabil</button>
+                            <button type="submit" name="status" value="@PatientCareStatus.Discharged" class="btn btn-outline-secondary btn-sm">Taburcu</button>
+                            <a class="text-link" asp-controller="Patients" asp-action="Details" asp-route-id="@patient.Id">Detay</a>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<style>
+    .profile-upload-trigger {
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+    }
+    .upload-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        font-size: 10px;
+        text-align: center;
+        padding: 4px 0;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .profile-upload-trigger:hover .upload-overlay {
+        opacity: 1;
+    }
+</style>

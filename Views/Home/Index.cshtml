@@ -1,0 +1,68 @@
+@{
+    Layout = "_MinimalLayout";
+    ViewData["Title"] = "Giriş";
+    var doctorError = TempData["DoctorLoginError"] as string;
+    var patientError = TempData["PatientLoginError"] as string;
+}
+
+<section class="auth-screen">
+    <div class="auth-shell">
+        <div class="auth-intro">
+            <p class="panel-eyebrow">SmartCare</p>
+            <h1>Hasta ve doktor girişi</h1>
+            <p class="timeline-copy">
+                Doktorlar hasta kaydı açabilir, durum güncelleyebilir ve günlük iş akışını yönetebilir.
+                Hastalar ise kendi kartlarını, randevularını ve durum özetlerini ayrı ekranda görür.
+            </p>
+            <a class="text-link" asp-controller="Admin" asp-action="Index">Yönetici girişi</a>
+        </div>
+
+        <div class="auth-grid">
+            <article class="auth-panel">
+                <p class="panel-eyebrow">Doktor girişi</p>
+                <h2>Panel aç</h2>
+
+                @if (!string.IsNullOrWhiteSpace(doctorError))
+                {
+                    <div class="auth-error">@doctorError</div>
+                }
+
+                <form asp-controller="Auth" asp-action="DoctorLogin" method="post" class="auth-form">
+                    @Html.AntiForgeryToken()
+                    <div>
+                        <label class="form-label" for="doctorUsername">Kullanıcı adı</label>
+                        <input id="doctorUsername" name="Username" class="form-control" autocomplete="username" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="doctorPassword">Şifre</label>
+                        <input id="doctorPassword" name="Password" type="password" class="form-control" autocomplete="current-password" />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Doktor olarak gir</button>
+                </form>
+            </article>
+
+            <article class="auth-panel">
+                <p class="panel-eyebrow">Hasta girişi</p>
+                <h2>Kod ile giriş</h2>
+
+                @if (!string.IsNullOrWhiteSpace(patientError))
+                {
+                    <div class="auth-error">@patientError</div>
+                }
+
+                <form asp-controller="Auth" asp-action="PatientLogin" method="post" class="auth-form">
+                    @Html.AntiForgeryToken()
+                    <div>
+                        <label class="form-label" for="patientNationalId">T.C. kimlik no</label>
+                        <input id="patientNationalId" name="NationalId" class="form-control" inputmode="numeric" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="patientAccessCode">Giriş kodu</label>
+                        <input id="patientAccessCode" name="AccessCode" class="form-control text-uppercase" />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Hasta olarak gir</button>
+                </form>
+            </article>
+        </div>
+    </div>
+</section>

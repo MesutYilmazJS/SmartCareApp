@@ -1,0 +1,198 @@
+@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Yönetici Paneli";
+}
+
+<section class="hero-panel">
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-7">
+            <span class="eyebrow">Yönetici görünümü</span>
+            <h1 class="display-title">Gün içi öncelik, randevu ve yoğunluk takibi</h1>
+            <p class="hero-copy">
+                Hasta akışı, doktor dağılımı ve yaklaşan randevular tek ekranda izlenir.
+                Bu görünüm yönetim ve operasyon takibi için ayrılmıştır.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                <a class="btn btn-primary btn-lg" asp-controller="Patients" asp-action="Index">Hastalar</a>
+                <a class="btn btn-outline-light btn-lg" asp-controller="Appointments" asp-action="Index">Randevular</a>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="glass-card hero-metric">
+                <p class="metric-label">Bugün</p>
+                <div class="hero-metric-grid">
+                    <div>
+                        <span class="metric-value">@Model.UrgentQueueCount</span>
+                        <span class="metric-text">öncelikli hasta</span>
+                    </div>
+                    <div>
+                        <span class="metric-value">@Model.NoShowAlertCount</span>
+                        <span class="metric-text">katılım riski</span>
+                    </div>
+                    <div>
+                        <span class="metric-value">@Model.TodayAppointmentCount</span>
+                        <span class="metric-text">bugünkü randevu</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stat-grid">
+    <article class="stat-card">
+        <span class="stat-title">Aktif hasta</span>
+        <strong>@Model.ActivePatientCount</strong>
+        <p>Takipte olan toplam kayıt sayısı.</p>
+    </article>
+    <article class="stat-card">
+        <span class="stat-title">Öncelik sırası</span>
+        <strong>@Model.UrgentQueueCount</strong>
+        <p>Yüksek öncelikli hastalar listenin üstünde görünür.</p>
+    </article>
+    <article class="stat-card">
+        <span class="stat-title">Katılım takibi</span>
+        <strong>@Model.NoShowAlertCount</strong>
+        <p>Gelmeme ihtimali yüksek kayıtlar ayrı izlenir.</p>
+    </article>
+    <article class="stat-card">
+        <span class="stat-title">Bugünkü plan</span>
+        <strong>@Model.TodayAppointmentCount</strong>
+        <p>Gün içi yoğunluk tek bakışta izlenir.</p>
+    </article>
+</section>
+
+<div class="dashboard-grid">
+    <section class="panel-card">
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Öncelik listesi</p>
+                <h2>Bugün öne çıkan hastalar</h2>
+            </div>
+            <a class="text-link" asp-controller="Patients" asp-action="Index">Tümünü gör</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table queue-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Hasta</th>
+                        <th>Başvuru nedeni</th>
+                        <th>Öncelik</th>
+                        <th>Katılım</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var patient in Model.PriorityQueue)
+                {
+                    <tr>
+                        <td>
+                            <div class="table-user">
+                                <span class="profile-square profile-square-sm">
+                                    <img src="@patient.ProfileImageUrl" alt="@patient.FullName" />
+                                </span>
+                                <div>
+                                    <a class="patient-link" asp-controller="Patients" asp-action="Details" asp-route-id="@patient.PatientId">@patient.FullName</a>
+                                    <div class="table-subtitle">@patient.Age yaş</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>@patient.PrimarySymptom</div>
+                            <div class="table-subtitle">@patient.ChronicConditions</div>
+                        </td>
+                        <td><risk-badge score="@patient.RiskScore"></risk-badge></td>
+                        <td><risk-badge score="@patient.NoShowRiskScore" label="Katılım"></risk-badge></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel-card">
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Operasyon notları</p>
+                <h2>İzlenen başlıklar</h2>
+            </div>
+        </div>
+
+        <div class="insight-stack">
+        @foreach (var insight in Model.Insights)
+        {
+            <article class="insight-card @insight.Accent">
+                <h3>@insight.Title</h3>
+                <p>@insight.Description</p>
+            </article>
+        }
+        </div>
+    </section>
+</div>
+
+<div class="dashboard-grid">
+    <section class="panel-card">
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Doktor yoğunluğu</p>
+                <h2>Gün içi dağılım</h2>
+            </div>
+            <a class="text-link" asp-controller="Doctors" asp-action="Index">Doktor listesi</a>
+        </div>
+
+        <div class="doctor-stack">
+        @foreach (var doctor in Model.DoctorLoads)
+        {
+            <article class="doctor-card">
+                <div class="table-user">
+                    <span class="profile-square">
+                        <img src="@doctor.ProfileImageUrl" alt="@doctor.FullName" />
+                    </span>
+                    <div>
+                        <h3>@doctor.FullName</h3>
+                        <p>@doctor.Specialty</p>
+                    </div>
+                </div>
+                <div class="doctor-load-meta">
+                    <span>Oda @doctor.RoomNumber</span>
+                    <strong>@doctor.AppointmentCount randevu</strong>
+                </div>
+            </article>
+        }
+        </div>
+    </section>
+
+    <section class="panel-card">
+        <div class="panel-heading">
+            <div>
+                <p class="panel-eyebrow">Randevu akışı</p>
+                <h2>Yaklaşan randevular</h2>
+            </div>
+        </div>
+
+        <div class="appointment-list">
+        @foreach (var appointment in Model.UpcomingAppointments)
+        {
+            <article class="appointment-card">
+                <div class="table-user">
+                    <span class="profile-square profile-square-sm">
+                        <img src="@appointment.PatientProfileImageUrl" alt="@appointment.PatientName" />
+                    </span>
+                    <div>
+                        <h3>@appointment.PatientName</h3>
+                        <p>@appointment.DoctorName</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="appointment-time">@appointment.ScheduledAt.ToLocalTime().ToString("ddd, dd MMM HH:mm")</div>
+                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                        <risk-badge score="@appointment.NoShowRiskScore" label="Katılım"></risk-badge>
+                        <span class="status-pill">@appointment.Status</span>
+                    </div>
+                </div>
+            </article>
+        }
+        </div>
+    </section>
+</div>

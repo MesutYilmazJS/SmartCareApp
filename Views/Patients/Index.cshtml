@@ -1,0 +1,67 @@
+@model IReadOnlyList<Patient>
+@inject SmartCareApp.Services.IProfileImageCatalogService ImageService
+
+@{
+    ViewData["Title"] = "Hastalar";
+}
+
+<section class="panel-card mt-4">
+    <div class="panel-heading">
+        <div>
+            <p class="panel-eyebrow">Hasta kayıtları</p>
+            <h2>Öncelik sırasına göre liste</h2>
+        </div>
+        @if (User.IsInRole(PortalRoles.Doctor))
+        {
+            <a class="btn btn-primary" asp-action="Create">Yeni kayıt</a>
+        }
+    </div>
+
+    <div class="table-responsive">
+        <table class="table queue-table align-middle">
+            <thead>
+                <tr>
+                    <th>Hasta</th>
+                    <th>Giriş</th>
+                    <th>Başvuru nedeni</th>
+                    <th>Öncelik</th>
+                    <th>Durum</th>
+                    <th>Katılım</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var patient in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="table-user">
+                            <span class="profile-square profile-square-sm">
+                                <img src="@ImageService.GetPatientImageUrl(patient.ProfileImageFileName)" alt="@patient.FullName" />
+                            </span>
+                            <div>
+                                <strong>@patient.FullName</strong>
+                                <div class="table-subtitle">@patient.Age yaş</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div>@patient.AccessCode</div>
+                        <div class="table-subtitle">@patient.NationalId</div>
+                    </td>
+                    <td>
+                        <div>@patient.PrimarySymptom</div>
+                        <div class="table-subtitle">@patient.ChronicConditions</div>
+                    </td>
+                    <td><risk-badge score="@patient.RiskScore"></risk-badge></td>
+                    <td><span class="care-status-chip @patient.CareStatus.ToCssClass()">@patient.CareStatus.ToDisplayText()</span></td>
+                    <td><risk-badge score="@patient.NoShowRiskScore" label="Katılım"></risk-badge></td>
+                    <td class="text-end">
+                        <a class="text-link" asp-action="Details" asp-route-id="@patient.Id">Detay</a>
+                    </td>
+                </tr>
+}
+            </tbody>
+        </table>
+    </div>
+</section>

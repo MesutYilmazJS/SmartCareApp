@@ -1,0 +1,37 @@
+@model AdminLoginViewModel
+
+@{
+    Layout = "_MinimalLayout";
+    ViewData["Title"] = "Yönetici Girişi";
+}
+
+<section class="auth-screen">
+    <div class="auth-shell auth-shell-narrow">
+        <div class="auth-intro">
+            <p class="panel-eyebrow">Yönetici</p>
+            <h1>Yönetici kodu ile giriş</h1>
+            <p class="timeline-copy">Bu alan mevcut yönetici dashboard’una erişim verir.</p>
+            <a class="text-link" asp-controller="Home" asp-action="Index">Ana girişe dön</a>
+        </div>
+
+        <article class="auth-panel">
+            <p class="panel-eyebrow">Kod girişi</p>
+            <h2>/admin erişimi</h2>
+
+            <form asp-action="Login" method="post" class="auth-form">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div>
+                    <label asp-for="AccessCode" class="form-label"></label>
+                    <input asp-for="AccessCode" class="form-control" autocomplete="one-time-code" />
+                    <span asp-validation-for="AccessCode" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Yönetici panelini aç</button>
+            </form>
+        </article>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

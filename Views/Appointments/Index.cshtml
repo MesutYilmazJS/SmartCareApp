@@ -1,0 +1,45 @@
+﻿@model IReadOnlyList<Appointment>
+
+@{
+    ViewData["Title"] = "Randevular";
+}
+
+<section class="panel-card mt-4">
+    <div class="panel-heading">
+        <div>
+            <p class="panel-eyebrow">Randevu listesi</p>
+            <h2>Günlük plan</h2>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table queue-table align-middle">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Hasta</th>
+                    <th>Doktor</th>
+                    <th>Ziyaret</th>
+                    <th>Katılım</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var appointment in Model)
+            {
+                <tr>
+                    <td>@appointment.ScheduledAt.ToLocalTime().ToString("ddd, dd MMM HH:mm")</td>
+                    <td>@appointment.Patient.FullName</td>
+                    <td>@appointment.Doctor.FullName</td>
+                    <td>
+                        <div>@appointment.VisitType</div>
+                        <div class="table-subtitle">@appointment.Reason</div>
+                    </td>
+                    <td><risk-badge score="@appointment.PredictedNoShowRisk" label="Katılım"></risk-badge></td>
+                    <td><span class="status-pill">@appointment.Status.ToDisplayText()</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

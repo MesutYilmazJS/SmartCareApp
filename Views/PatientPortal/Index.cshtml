@@ -1,0 +1,147 @@
+@model PatientPortalViewModel
+
+@{
+    ViewData["Title"] = "Hasta Paneli";
+}
+
+<section class="welcome-shell mt-4">
+    <div class="welcome-card">
+        <div class="welcome-profile">
+            <div class="profile-square profile-square-lg profile-upload-trigger" onclick="document.getElementById('profileImageInput').click()">
+                <img src="@Model.ProfileImageUrl" alt="@Model.Patient.FullName" />
+                <div class="upload-overlay">
+                    <span>Değiştir</span>
+                </div>
+            </div>
+            <form id="profileImageForm" asp-controller="Profile" asp-action="UploadPatientImage" method="post" enctype="multipart/form-data" style="display:none">
+                @Html.AntiForgeryToken()
+                <input type="file" id="profileImageInput" name="file" onchange="document.getElementById('profileImageForm').submit()" accept="image/*" />
+            </form>
+            <div>
+                <p class="panel-eyebrow">Hoş geldiniz</p>
+                <h1>@Model.Patient.FullName</h1>
+                <p class="timeline-copy">Kod: @Model.Patient.AccessCode · T.C.: @Model.Patient.NationalId</p>
+                <div class="d-flex gap-2 flex-wrap mt-2">
+                    <risk-badge score="@Model.Assessment.RiskScore"></risk-badge>
+                    <span class="care-status-chip @Model.Patient.CareStatus.ToCssClass()">@Model.Patient.CareStatus.ToDisplayText()</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="welcome-metrics">
+            <article>
+                <span class="metric-label">Randevu</span>
+                <strong>@Model.UpcomingAppointments.Count</strong>
+            </article>
+            <article>
+                <span class="metric-label">Katılım</span>
+                <strong>@Model.Patient.NoShowRiskScore</strong>
+            </article>
+            <article>
+                <span class="metric-label">Öncelik</span>
+                <strong>@Model.Patient.RiskScore</strong>
+            </article>
+        </div>
+    </div>
+</section>
+
+<div class="detail-grid mt-4">
+    <section class="detail-shell">
+        <div class="detail-highlights">
+            <article>
+                <p class="panel-eyebrow">Başvuru</p>
+                <strong>@Model.Patient.PrimarySymptom</strong>
+                <p>@Model.Patient.ChronicConditions</p>
+            </article>
+            <article>
+                <p class="panel-eyebrow">Durum</p>
+                <strong>@Model.Patient.CareStatus.ToDisplayText()</strong>
+                <p>@Model.Assessment.PriorityLabel</p>
+            </article>
+            <article>
+                <p class="panel-eyebrow">Katılım</p>
+                <strong>@Model.Patient.MissedAppointmentCount kaçırılan randevu</strong>
+                <p>Son 30 günde @Model.Patient.PortalLoginCountLast30Days giriş</p>
+            </article>
+        </div>
+
+        <div class="timeline-shell mt-4">
+            <div class="panel-heading">
+                <div>
+                    <p class="panel-eyebrow">Tıbbi geçmiş</p>
+                    <h2>Zaman akışı</h2>
+                </div>
+            </div>
+            @await Component.InvokeAsync("MedicalTimeline", new { patientId = Model.Patient.Id })
+        </div>
+    </section>
+
+    <aside class="detail-aside">
+        <article>
+            <h3 class="detail-section-title">Yaklaşan randevular</h3>
+            @if (Model.UpcomingAppointments.Count == 0)
+            {
+                <p class="timeline-copy">Planlı randevu bulunmuyor.</p>
+            }
+            else
+            {
+                <div class="appointment-list">
+                @foreach (var appointment in Model.UpcomingAppointments)
+                {
+                    <article class="appointment-card">
+                        <div>
+                            <h3>@appointment.VisitType</h3>
+                            <p>@appointment.Doctor.FullName</p>
+                            @if (appointment.Status == AppointmentStatus.CancellationRequested)
+                            {
+                                <span class="badge bg-warning text-dark">İptal Talebi Bekliyor</span>
+                            }
+                        </div>
+                        <div class="text-end">
+                            <div class="appointment-time">@appointment.ScheduledAt.ToLocalTime().ToString("ddd, dd MMM HH:mm")</div>
+                            <span class="status-pill mb-2">@appointment.Status.ToDisplayText()</span>
+                            
+                            @if (appointment.Status == AppointmentStatus.Scheduled)
+                            {
+                                <form asp-action="RequestCancellation" method="post" onsubmit="return confirm('Bu randevu için iptal talebi oluşturmak istediğinize emin misiniz?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="appointmentId" value="@appointment.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger mt-1">İptal Talebi</button>
+                                </form>
+                            }
+                        </div>
+                    </article>
+                }
+                </div>
+            }
+        </article>
+
+        <article>
+            <h3 class="detail-section-title">Kayıt notu</h3>
+            <p class="timeline-copy">@Model.Patient.IntakeNotes</p>
+        </article>
+    </aside>
+</div>
+<style>
+    .profile-upload-trigger {
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+    }
+    .upload-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        font-size: 10px;
+        text-align: center;
+        padding: 4px 0;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .profile-upload-trigger:hover .upload-overlay {
+        opacity: 1;
+    }
+</style>

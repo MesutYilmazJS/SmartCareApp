@@ -1,0 +1,97 @@
+@model PatientCreateViewModel
+
+@{
+    ViewData["Title"] = "Hasta Kaydı";
+}
+
+<section class="form-shell mt-4">
+    <div class="panel-heading">
+        <div>
+            <p class="panel-eyebrow">Doktor işlemi</p>
+            <h2>Yeni hasta kaydı aç</h2>
+        </div>
+    </div>
+
+    <p class="form-helper">Kaydı doktor açar. Sistem giriş kodunu otomatik üretir; hasta bu kod ve T.C. kimlik no ile giriş yapar.</p>
+
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="form-grid">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Patient.FullName" class="form-label"></label>
+                    <input asp-for="Patient.FullName" class="form-control" />
+                    <span asp-validation-for="Patient.FullName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Patient.NationalId" class="form-label"></label>
+                    <input asp-for="Patient.NationalId" class="form-control" inputmode="numeric" />
+                    <span asp-validation-for="Patient.NationalId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Patient.DateOfBirth" class="form-label"></label>
+                    <input asp-for="Patient.DateOfBirth" class="form-control" />
+                    <span asp-validation-for="Patient.DateOfBirth" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Patient.PrimarySymptom" class="form-label"></label>
+                    <input asp-for="Patient.PrimarySymptom" class="form-control" />
+                    <span asp-validation-for="Patient.PrimarySymptom" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Patient.ChronicConditions" class="form-label"></label>
+                    <textarea asp-for="Patient.ChronicConditions" class="form-control" rows="2"></textarea>
+                    <span asp-validation-for="Patient.ChronicConditions" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Patient.MissedAppointmentCount" class="form-label"></label>
+                    <input asp-for="Patient.MissedAppointmentCount" class="form-control" />
+                    <span asp-validation-for="Patient.MissedAppointmentCount" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Patient.PortalLoginCountLast30Days" class="form-label"></label>
+                    <input asp-for="Patient.PortalLoginCountLast30Days" class="form-control" />
+                    <span asp-validation-for="Patient.PortalLoginCountLast30Days" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Patient.IntakeNotes" class="form-label"></label>
+                    <textarea asp-for="Patient.IntakeNotes" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Patient.IntakeNotes" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input asp-for="Patient.HasDiabetes" class="form-check-input" />
+                        <label asp-for="Patient.HasDiabetes" class="form-check-label"></label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input asp-for="Patient.HasHypertension" class="form-check-input" />
+                        <label asp-for="Patient.HasHypertension" class="form-check-label"></label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input asp-for="Patient.HasCardiovascularDisease" class="form-check-input" />
+                        <label asp-for="Patient.HasCardiovascularDisease" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="d-flex flex-wrap gap-3">
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Listeye dön</a>
+            </div>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

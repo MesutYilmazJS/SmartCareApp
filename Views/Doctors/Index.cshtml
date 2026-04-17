@@ -1,0 +1,36 @@
+@model IReadOnlyList<Doctor>
+@inject SmartCareApp.Services.IProfileImageCatalogService ImageService
+
+@{
+    ViewData["Title"] = "Doktorlar";
+}
+
+<section class="panel-card mt-4">
+    <div class="panel-heading">
+        <div>
+            <p class="panel-eyebrow">Doktor listesi</p>
+            <h2>Yoğunluk özeti</h2>
+        </div>
+    </div>
+
+    <div class="doctor-stack">
+    @foreach (var doctor in Model)
+    {
+        <article class="doctor-card">
+            <div class="table-user">
+                <span class="profile-square">
+                    <img src="@ImageService.GetDoctorImageUrl(doctor.ProfileImageFileName)" alt="@doctor.FullName" />
+                </span>
+                <div>
+                    <h3>@doctor.FullName</h3>
+                    <p>@doctor.Specialty</p>
+                </div>
+            </div>
+            <div class="doctor-load-meta">
+                <span>Oda @doctor.RoomNumber</span>
+                <strong>@doctor.Appointments.Count randevu</strong>
+            </div>
+        </article>
+    }
+    </div>
+</section>
